@@ -12,8 +12,9 @@ REQUEST_LIMIT = 10
 async def get_response(user_input, stop_event, api_key, model_id):
     try:
         openai.api_key = api_key
-        response = openai.ChatCompletion.create(
-            model=model_id,  # Use the provided model ID
+        response = await asyncio.to_thread(
+            openai.ChatCompletion.create,
+            model=model_id,
             messages=[{"role": "user", "content": user_input}]
         )
         # Extract the response content
@@ -183,3 +184,4 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
+
