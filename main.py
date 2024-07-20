@@ -3,6 +3,11 @@ import openai
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+# Initialize OpenAI client with the API key
+from openai import OpenAI
+
+client = OpenAI(api_key="private")
+
 # Create a ThreadPoolExecutor for async tasks
 executor = ThreadPoolExecutor(max_workers=1)
 
@@ -11,14 +16,14 @@ REQUEST_LIMIT = 10
 
 async def get_response(user_input, stop_event, api_key, model_id):
     try:
-        openai.api_key = api_key
-        response = await asyncio.to_thread(
-            openai.ChatCompletion.create,
+        # Update API key in client
+        client.api_key = api_key
+        response = client.chat.completions.create(
             model=model_id,
             messages=[{"role": "user", "content": user_input}]
         )
         # Extract the response content
-        message = response.choices[0].message['content']
+        message = response.choices[0].message['content'].strip()
         return message
     except Exception as e:
         return f"Error: {str(e)}"
@@ -29,7 +34,7 @@ if 'initialized' not in st.session_state:
 if 'api_key' not in st.session_state:
     st.session_state.api_key = ""
 if 'model_id' not in st.session_state:
-    st.session_state.model_id = "gpt-4"  # Default model ID
+    st.session_state.model_id = "gpt-3.5-turbo"  # Default model ID
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 if 'stop_event' not in st.session_state:
@@ -58,7 +63,7 @@ st.sidebar.header("Configure Your Chatbot")
 
 # Input fields for configuration
 api_key = st.sidebar.text_input("OpenAI API Key", type="password", value=st.session_state.api_key)
-model_options = ["gpt-4", "gpt-3.5-turbo"]  # Add other models as needed
+model_options = ["gpt-3.5-turbo", "gpt-4"]  # Updated model options
 selected_model = st.sidebar.selectbox("Select GPT Model", model_options, index=model_options.index(st.session_state.model_id))
 
 # Update session state if user updates API key or model ID
@@ -184,4 +189,3 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
-
